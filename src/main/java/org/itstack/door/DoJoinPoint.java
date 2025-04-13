@@ -41,12 +41,15 @@ public class DoJoinPoint {
     @Around("aopPoint()")
     public Object doRouter(ProceedingJoinPoint jp) throws Throwable {
         //获取内容
-        Method method = getMethod(jp);
+        Method method = this.getMethod(jp);
         DoDoor door = method.getAnnotation(DoDoor.class);
-        //获取字段值
-        String keyValue = getFiledValue(door.key(), jp.getArgs());
+        //获取字段值，即userId, @DoDoor注解在相應方法上的參數值。 public UserInfo queryUserInfo(@RequestParam String userId) {
+        String keyValue = this.getFiledValue(door.key(), jp.getArgs());
         logger.info("itstack door handler method：{} value：{}", method.getName(), keyValue);
-        if (null == keyValue || "".equals(keyValue)) return jp.proceed();
+        if (null == keyValue || "".equals(keyValue)){
+            //拦截，改參數不能爲空，不然越過了限制
+            return returnObject(door, method);
+        }
         //配置内容
         String[] split = starterService.split(",");
         //白名单过滤
@@ -62,15 +65,15 @@ public class DoJoinPoint {
     private Method getMethod(JoinPoint jp) throws NoSuchMethodException {
         Signature sig = jp.getSignature();
         MethodSignature methodSignature = (MethodSignature) sig;
-        return getClass(jp).getMethod(methodSignature.getName(), methodSignature.getParameterTypes());
+        return this.getClass(jp).getMethod(methodSignature.getName(), methodSignature.getParameterTypes());
     }
 
     private Class<? extends Object> getClass(JoinPoint jp) throws NoSuchMethodException {
         return jp.getTarget().getClass();
     }
 
-    //返回对象
-    private Object returnObject(DoDoor doGate, Method method) throws IllegalAccessException, InstantiationException {
+        //返回对象
+        private Object returnObject(DoDoor doGate, Method method) throws IllegalAccessException, InstantiationException {
         Class<?> returnType = method.getReturnType();
         String returnJson = doGate.returnJson();
         if ("".equals(returnJson)) {

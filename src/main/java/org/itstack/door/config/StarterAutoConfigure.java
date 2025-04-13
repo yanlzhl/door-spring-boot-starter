@@ -1,5 +1,6 @@
 package org.itstack.door.config;
 
+import org.itstack.door.DoJoinPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -27,5 +28,12 @@ public class StarterAutoConfigure {
     StarterService starterService() {
         return new StarterService(properties.getUserStr());
     }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public DoJoinPoint point(){
+        return new DoJoinPoint();
+    }
+
 
 }
